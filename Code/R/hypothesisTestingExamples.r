@@ -15,7 +15,7 @@ rm(list=ls())
 #' \begin{align*}
 #' \hat{\mu} &= \bar{y}\\
 #' \hat{\sigma^2} &= \frac{1}{N}\sum_{i=1}^N(y_i-\bar{y})^2.
-#' \end{aligned}
+#' \end{align*}
 #' 
 #' We also need the restricted model. 
 #' Here we fit the model as if the null hypothesis is true,
@@ -120,3 +120,14 @@ pchisq(wald, lower=FALSE, df=2)
 wald <- t(A%*% theta.hat -b) %*% solve(A %*% V3 %*% A) %*% (A%*% theta.hat -b) 
 wald
 pchisq(wald, lower=FALSE, df=2)
+
+
+
+
+
+
+
+c.theta <- exp(mu.mle + s2.mle/2)-1
+Dc.theta <- c(exp(mu.mle + s2.mle/2), exp(mu.mle+s2.mle/2)/2)
+Wald <- c.theta %*% solve(Dc.theta %*% V2 %*% Dc.theta) %*% c.theta
+pchisq(Wald, lower=FALSE, df=1)
