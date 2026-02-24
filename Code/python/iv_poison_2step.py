@@ -51,12 +51,15 @@ C_tg = -L2.diff(t).diff(g1)
 C_r1g = -L2.diff(r1).diff(g1)
 C_r2g = -L2.diff(r2).diff(g1)
 
+## make some substitutions for easier reading and print
+l = IndexedBase('lambda', real=True, positive=True)
 
-C_bg
+
+C_bg.replace(exp(xb),l[i])
 ## rho * (X' (Iexp(XB)) Z)
 
-C_r1g
+C_r1g.replace(exp(xb),l[i]).replace(v1, IndexedBase("v_1")[i])
 ## rho * (v' *lambda) +(lambda - y)'Z
 
-C_r2g
+C_r2g.replace(exp(xb),l[i]).replace(v2, IndexedBase("v_2")[i])
 ## rho * (v' *lambda)
