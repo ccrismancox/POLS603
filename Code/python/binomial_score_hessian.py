@@ -96,3 +96,22 @@ Db = Db.replace((x1[i]*b1+ x2[i]*b2), m[i])
 
 Db1
 Db
+
+
+
+## bias?
+## Here we consider a different (but identical) version of the score function
+## for a model with just the constant
+p,phat = symbols("p,\\hat{p}")
+score0 = Sum(y[i]-(1/(1+exp(-b))), (i,1,N)).expand().doit()
+bhat = solve(score0, b)[0].replace(Sum(y[i],(i,1,N)),N*phat).simplify()
+bhat
+
+## derives for a 2nd order Taylor
+D1 = bhat.diff(phat).simplify().subs(phat,p)
+D2 = D1.diff(p).simplify()
+
+tay = bhat.subs(phat,p) + D1 *(phat-p) +   D2*(phat-p)**2 / 2
+Etay = tay.subs([((phat-p)**2, p*(1-p)/N),(phat-p,0) ])
+Etay
+
