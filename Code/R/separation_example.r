@@ -1,6 +1,7 @@
 library(brglm2)
 library(detectseparation)
 library(car)
+rm(list=ls())
 L.cauchy.logit <- function(b,Z){
   return(-sum(plogis(Z%*%b, log=TRUE))-
            sum(c(dcauchy(b[1],scale=10,log=TRUE),
@@ -24,7 +25,7 @@ r.logF.logit <- function(b,Z){
 }
 
 
-fulldata <- read.csv('Code/R/datasets/Enemies_Replication.csv')
+fulldata <- read.csv('datasets/Enemies_Replication.csv')
 
 vars <- c('FSubs', 'FinalGood', 'CompShareZipCoal', 
           'ZipCoalField', 'MarketShare', 'Productivity', 
