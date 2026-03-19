@@ -1,3 +1,45 @@
+###### Normal #####
+l.normal <- function(theta, y, X, sum=TRUE){
+  ## Normal negative log-likelihood
+  ## inputs: theta: a guess at regression parameters with log(s2) last
+  ##         y: dependent variable
+  ##         X: independent variables
+  ##         sum: a flag for whether to return the 
+  ##              summed negative log-likelihood or 
+  ##              the vector of log-likelihoods
+  ## returns: (negative) log-likelihood or 
+  ##          vector of log-likelihood
+  s2 <- exp(theta[length(theta)])
+  beta <- theta[-length(theta)]
+  Xb <- drop(X %*% beta)
+
+  LL <- -1/2 *log(2*base::pi) - 1/2 * log(s2) -1/(2*s2) *(y-Xb)^2
+  if(sum){
+    return(- sum(LL))
+  }else{
+    return(LL)
+  }
+}
+r.normal <- function(theta, y, X, sum=TRUE){
+  ## Poisson negative score
+  ## inputs: theta: a guess at regression parameters with log(s2) last
+  ##         y: dependent variable
+  ##         X: independent variables
+  ##         sum: a flag for whether to return the 
+  ##              summed negative score or 
+  ##              the Jacobian matrix
+  ## returns: (negative) score or Jacobian
+  s2 <- exp(theta[length(theta)])
+  beta <- theta[-length(theta)]
+  Xb <- drop(X %*% beta)
+  J <- X*(y-Xb)/s2
+  if(sum){
+    return(-colSums(J))
+  }else{
+    return(J)
+  }
+}
+
 #### Poisson #####
 l.poisson <- function(beta, y,X, sum=TRUE){
   ## Poisson negative log-likelihood
