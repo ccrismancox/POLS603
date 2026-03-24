@@ -81,6 +81,8 @@ for(k in 1:nrow(conds)){
                      y=dat$y, 
                      method="BFGS",
                      hessian=TRUE)
+    
+    
     V1h <- mean(dat$v^2) *solve(t(Zobs)%*% Zobs)
     V2h <- solve(poi.iv$hessian)
     V1 <- solve(t(Zobs)%*% Zobs) %*% (crossprod(Zobs*dat$v)) %*% solve(t(Zobs)%*% Zobs)
@@ -212,7 +214,7 @@ ggplot(coverage)+
   theme(legend.position = "bottom")
 
 
-cbind(means[, "cor.X1.d"],rep(rho, 4))
+round(cbind(means[, "cor.X1.d"],rep(rho, 4)),2)
 cor(cbind(means[, "cor.X1.d"],rep(rho, 4)))
 par(mfrow=c(1,2))
 plot(means[, "cor.X1.d"]~rep(rho, 4),
