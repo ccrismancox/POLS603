@@ -131,4 +131,164 @@ r.negbin <- function(b,y,X, sum=TRUE){
 }
 
 
+#### Binomial: Logit and probit #####
+l.binomial <- function(b,Z, link=c("logit", "probit"), sum=TRUE){
+  ## binomial negative log-likelihood
+  ## inputs: b: guess at regression parameters
+  ##         Z: the data, (2*y-1)*X
+  ##         link: the link function either 
+  ##               logit (default) or probit
+  ##         sum: a flag for whether to return the 
+  ##              summed negative log-likelihood or 
+  ##              the vector of log-likelihoods
+  ## returns: (negative) log-likelihood or 
+  ##          vector of log-likelihood  
+  G <- match.arg(G)
+  G <- switch(G, #assign G based on link
+              "logit"=plogis,
+              "probit"=pnorm)
+  lp <- G(Z%*%b, log.p=TRUE)
+  if(sum){
+    return(-sum(lp))
+  }else{
+    return(lp)
+  }
+}
+r.binomial <- function(b,Z, G=c("logit", "probit"), sum=TRUE){
+  ## binomial first derivatives
+  ## inputs: b: guess at regression parameters
+  ##         Z: the data, (2*y-1)*X
+  ##         link: the link function either 
+  ##               logit (default) or probit
+  ##         sum: a flag to return either the 
+  ##           negative score (default) or Jacobian
+  ## returns: either the negative score or Jacobian
+  link <- match.arg(link)
+  mu <- drop(Z %*% b)      
+  
+  if(link=="logit"){
+    Jac <- Z*plogis(mu,lower.tail = FALSE)
+  }else{
+    p <- pnorm(mu)
+    ## If it gets to the point where it tries to divide by 0, 
+    ## stop it by replacing it with the smallest number that
+    ## the computer knows is not 0
+    p[p < .Machine$double.eps] <- .Machine$double.eps
+    Jac <- Z*dnorm(mu)/p    
+  }
+  if(sum){
+    return(-colSums(Jac))
+  }else{
+    return(Jac)
+  }
+}
+H.binomial <- function(b,Z, link=c("logit", "probit")){
+  ## binomial Hessian
+  ## inputs: b: guess at regression parameters
+  ##         Z: the data, (2*y-1)*X
+  ##         link: the link function either 
+  ##               logit (default) or probit
+  ## returns: negative Hessian
+  link <- match.arg(link)
+  mu <- drop(Z %*% b)      
+  
+  if(link=="logit"){
+    omega <- sqrt(dlogis(mu))
+  }else{
+    p <- pnorm(mu)
+    ## If it gets to the point where it tries to divide by 0, 
+    ## stop it by replacing it with the smallest number that
+    ## the computer knows is not 0
+    p[p < .Machine$double.eps] <- .Machine$double.eps
+    ratio <- dnorm(mu)/p
+    omega <- sqrt(ratio*(mu + ratio))
+  }
+  Zstar <- Z*omega
+  Hess <- -t(Zstar) %*% Zstar
+  
+  return(Hess)
+}
+
+#### penalized logits ####
+l.logit.pml <- function(b,Z, penalty=c("Jeffreys", "Cauchy", "logF")){
+  ## bias-reduced negative log-likelihood
+  ## inputs: b: guess at regression parameters
+  ##         Z: the data, (2*y-1)*X
+  ##         penalty: what penalty to use
+  ## returns: (negative) log-likelihood 
+  penalty <- match.arg(penalty)
+  if(penalty=="Jeffreys"){
+    ## note that determinant calculates the logged det by default so slightly 
+    ## better than log(det(H))
+    p <- determinant(H.binomial(b,Z))$mod[1]/2
+  }else{
+    if(penalty=="Cauchy"){
+      p <- sum(c(dcauchy(b[1],scale=10,log=TRUE),
+                 dcauchy(b[-1],scale=2.5,log=TRUE)))
+    }else{
+      p <- sum(b[-1]/2-log(exp(b[-1])+1))
+    }
+  }
+  
+  
+  return(-sum(plogis(Z%*%b, log=TRUE))-p)
+  
+}
+
+r.logit.pml <- function(b,Z, penalty=c("Jeffreys", "Cauchy", "logF")){
+  ## bias-reduced negative negative score
+  ## inputs: b: guess at regression parameters
+  ##         Z: the data, (2*y-1)*X
+  ##         penalty: what penalty to use
+  ## returns: (negative) log-likelihood 
+  penalty <- match.arg(penalty)
+  if(penalty=="Jeffreys"){
+    w <- sqrt(dlogis(drop(Z%*%b)))
+    Ztilde <- Z*w
+    h <- diag(Ztilde %*% solve(t(Ztilde)  %*% Ztilde) %*% t(Ztilde))
+    p <- plogis(drop(Z%*%b ))
+    
+    return(-colSums(Z*((1-p)*(1+h/2)-p*(h/2))))
+  }else{
+    if(penalty=="Cauchy"){
+      score <- colSums(Z*(1-plogis(drop(Z%*%b))))
+      penalty <- c(-2*b[1]/(b[1]^2+100), 
+                   -0.32*b[-1]/(0.16*b[-1]^2+1))
+      return(-score-penalty)
+    }else{
+      score <- colSums(Z*(1-plogis(drop(Z%*%b))))
+      penalty <- c(0,(1/2-plogis(b[-1])))
+      return(-score-penalty)
+    }
+  }
+  
+  
+  return(-sum(plogis(Z%*%b, log=TRUE))-p)
+  ## note that determinant calculates the logged det by default so slightly 
+  ## better than log(det(H))
+}
+
+r.logit.br <- function(b,Z){
+  w <- sqrt(dlogis(drop(Z%*%b)))
+  Ztilde <- Z*w
+  h <- diag(Ztilde %*% solve(t(Ztilde)  %*% Ztilde) %*% t(Ztilde))
+  p <- plogis(drop(Z%*%b ))
+  
+  return(-colSums(Z*((1-p)*(1+h/2)-p*(h/2))))
+}
+
+
+r.cauchy.logit <- function(b,Z){
+  score <- colSums(Z*(1-plogis(drop(Z%*%b))))
+  penalty <- c(-2*b[1]/(b[1]^2+100), 
+               -0.32*b[-1]/(0.16*b[-1]^2+1))
+  return(-score-penalty)
+}
+
+
+r.logF.logit <- function(b,Z){
+  score <- colSums(Z*(1-plogis(drop(Z%*%b))))
+  penalty <- c(0,(1/2-plogis(b[-1])))
+  return(-score-penalty)
+}
 

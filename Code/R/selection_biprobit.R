@@ -9,7 +9,7 @@ library(matrixStats)
 
 rm(list=ls())
 
-bcg<- read.dta13("BCG_merged.dta",
+bcg<- read.dta13("datasets/BCG_merged.dta",
                  convert.dates = TRUE, ## avoid warnings
                  convert.underscore = FALSE,## avoid warnings
                  nonint.factors = FALSE) ## avoid warnings

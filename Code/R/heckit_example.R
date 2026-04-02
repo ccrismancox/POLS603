@@ -2,6 +2,7 @@ library(sandwich)
 library(lmtest)
 library(GJRM)
 library(MASS)
+library(car)
 rm(list=ls())
 mroz87 <- read.csv("datasets/Mroz87.csv")
 
@@ -19,7 +20,7 @@ coeftest(ols, vcovHC)
 # hourly wages by about 11%, holding experience fixed
 
 ## On average, a 1 year increase in experience increases 
-## hourly wages by about [0.04 -0.002 (years of experience)]*100 %
+## hourly wages by about [0.04 -0.001 (years of experience)]*100 %
 ## hold education fixed.
 
 ## For polynomials we may want to plot the fitted values and marginals
@@ -114,10 +115,11 @@ ame.ed
 ## changes from before
 ## model is now BSS for bivariate sample selection
 ## the selection equation must go first in the formulas
-fiml <- gjrm(list(lfp ~ log(huswage) + educ 
+fiml <- gjrm(list(lfp ~  educ 
                   + age +I(age^2)
                   +kids5, 
-                  lnwage ~ educ + exper + I( exper^2 )),
+                  lnwage ~ educ + exper + 
+                    I( exper^2 )),
              data=mroz87,
              model="BSS",
              margins=c("probit", "N"))
