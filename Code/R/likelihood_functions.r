@@ -268,27 +268,3 @@ r.logit.pml <- function(b,Z, penalty=c("Jeffreys", "Cauchy", "logF")){
   ## better than log(det(H))
 }
 
-r.logit.br <- function(b,Z){
-  w <- sqrt(dlogis(drop(Z%*%b)))
-  Ztilde <- Z*w
-  h <- diag(Ztilde %*% solve(t(Ztilde)  %*% Ztilde) %*% t(Ztilde))
-  p <- plogis(drop(Z%*%b ))
-  
-  return(-colSums(Z*((1-p)*(1+h/2)-p*(h/2))))
-}
-
-
-r.cauchy.logit <- function(b,Z){
-  score <- colSums(Z*(1-plogis(drop(Z%*%b))))
-  penalty <- c(-2*b[1]/(b[1]^2+100), 
-               -0.32*b[-1]/(0.16*b[-1]^2+1))
-  return(-score-penalty)
-}
-
-
-r.logF.logit <- function(b,Z){
-  score <- colSums(Z*(1-plogis(drop(Z%*%b))))
-  penalty <- c(0,(1/2-plogis(b[-1])))
-  return(-score-penalty)
-}
-
