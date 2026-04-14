@@ -5,14 +5,6 @@ Created on Mon Jun  9 14:14:00 2025
 
 @author: cox
 """
-## Load the package
-from sympy import * 
-
-##optional but makes the printed math nicer
-init_printing(forecolor="White") 
-
-## We first need to declare what our variables are
-
 x, z, d,g,b, r, y, t,c, w= symbols("x, z, d, gamma, beta, rho, y, tau, psi, w", real=True)
 s = symbols("sigma", positive=True)
 Phi = Function("Phi", real=True)

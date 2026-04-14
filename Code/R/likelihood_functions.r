@@ -268,3 +268,87 @@ r.logit.pml <- function(b,Z, penalty=c("Jeffreys", "Cauchy", "logF")){
   ## better than log(det(H))
 }
 
+
+
+
+### Duration ####
+l.duration <- function(theta, y, X,uncen, 
+                       dist=c("exponential", "Weibull"),
+                       type=c("aft", "ph"),
+                       sum=TRUE){
+  ## Exponential and weibull duration models
+  ## inputs: theta: guess at regression parameters with log(alpha) last 
+  ##                if using the Weibull
+  ##         y: dependent variable
+  ##         X: independent variables
+  ##         uncen: dummy variable indicating if the duration is
+  ##                uncensored
+  ##         dist: Which distribution to use 
+  ##         type: AFT (target E[y|X]) or PH (target h(t|X))
+  ##         sum: a flag for whether to return the 
+  ##              summed negative log-likelihood or 
+  ##              the vector of log-likelihoods
+  ## returns: (negative) log-likelihood or 
+  ##          vector of log-likelihood 
+  dist=match.arg(dist)
+  type <- match.arg(type)
+  
+  if(dist=="Weibull"){
+    ln.a <- theta[length(theta)]
+    beta <- theta[-length(theta)]
+  }else{
+    ln.a <- 0
+    beta <- theta
+  }
+  a <- exp(ln.a)
+  XB <- drop(X%*%beta)
+  aft <- ifelse(type=="aft", -a,1)
+  lp <- aft * XB
+  lam <- exp(lp)
+  lS <- -lam*(y^a)
+  lhaz <- log(a) + lp + (a-1)*log(y)
+  ll <- uncen*lhaz + lS
+  if(sum){
+    return(-sum(ll))
+  }else{
+    return(ll)
+  }
+}
+r.duration <-function(theta, y, X,uncen, 
+                      dist=c("exponential", "Weibull"),
+                      type=c("aft", "ph"),
+                      sum=TRUE){
+  dist=match.arg(dist)
+  if(dist=="Weibull"){
+    ln.a <- theta[length(theta)]
+    beta <- theta[-length(theta)]
+  }else{
+    ln.a <- 0
+    beta <- theta
+  }  
+  a <- exp(ln.a)
+  XB <- drop(X%*%beta)
+  type <- match.arg(type)
+  aft <- ifelse(type=="aft", -a,1)
+  lp <- aft * XB
+  lam <- exp(lp)
+  
+  
+  Dbeta <- X* (aft*uncen-aft*lam*(y^a))
+  if(type=="aft"){
+    Da <- uncen*(1-a*XB+a*log(y)) -a*lam*log(y)*(y^a) + a*XB*lam*(y^a)
+  }else{
+    Da <- uncen*(1+a*log(y)) -a*lam*log(y)*(y^a) 
+    
+  }
+  if(dist=="Weibull"){
+    J <- cbind(Dbeta, Da)
+  }else{
+    J <- Dbeta
+  }
+  if(sum){
+    return(-colSums(J))
+  }else{
+    return(J)
+  }
+}

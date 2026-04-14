@@ -43,19 +43,44 @@ Xbar <- apply(Xbar,2, \(x){
   }
 })
 Xbar <- cbind(Xbar, diag(58))
+Xbar1 <- Xbar0 <- Xbar
+Xbar1[, "rebelregime"] <- 1
+Xbar0[, "rebelregime"] <- 0
+Xbar <- rbind(Xbar1, Xbar0)
 yhat <- plogis(Xbar %*% l1.dummies$coef)
+
 Bmat <- mvrnorm(1000, l1.dummies$coef, Vd)
 y.sim <- plogis(Xbar %*% t(Bmat))
 CI <- rowQuantiles(y.sim, probs=c(0.025, 0.975))
 
 plot.df <- data.frame(Hazard = yhat,
+                      Regime=rep(c("Rebellion", "Other"), each=58),
                       lo=CI[,1],
                       hi=CI[,2],
-                      time=1:58)
+                      Time=1:58)
+## difference in hazards
+CI <- rowQuantiles(y.sim[1:58,]-y.sim[59:116,], probs=c(0.025, 0.975))
+plot.df2 <- data.frame(Diff = yhat[1:58]-yhat[59:116],
+                       lo=CI[,1],
+                       hi=CI[,2],
+                       Time=1:58)
 ggplot(plot.df)+
-  geom_pointrange(aes(x=time, y=Hazard,
-                      ymin=lo,ymax=hi),
-                  size=.3)
+  geom_ribbon(aes(x=Time,
+                  ymin=lo,ymax=hi,
+                  fill=Regime),
+              alpha=.3)+
+  geom_line(aes(x=Time, y=Hazard,
+                color=Regime),
+            linewidth=.3)+
+  theme_bw(14)
+ggplot(plot.df2)+
+  geom_ribbon(aes(x=Time,
+                  ymin=lo,ymax=hi),
+              alpha=.3)+
+  geom_line(aes(x=Time, y=Diff),
+            linewidth=.3)+
+  ylab("Difference in hazards")+
+  theme_bw(14)
 
 #### polynomials ####
 l1.poly <- glm(fail_main~ rebelregime +
@@ -86,22 +111,45 @@ Xbar <- apply(X,2, \(x){
     rep(mean(x), 58)
   }
 })
-Xbar <- cbind(Xbar, (1:58), (1:58)^2, (1:58)^3)
+Xbar <- cbind(Xbar, 1:58, (1:58)^2, (1:58)^3)
+Xbar1 <- Xbar0 <- Xbar
+Xbar1[, "rebelregime"] <- 1
+Xbar0[, "rebelregime"] <- 0
+Xbar <- rbind(Xbar1, Xbar0)
 yhat <- plogis(Xbar %*% l1.poly$coef)
+
 Bmat <- mvrnorm(1000, l1.poly$coef, Vp)
 y.sim <- plogis(Xbar %*% t(Bmat))
 CI <- rowQuantiles(y.sim, probs=c(0.025, 0.975))
 
 plot.df <- data.frame(Hazard = yhat,
+                      Regime=factor(rep(c("Rebellion", "Other"), each=58)),
                       lo=CI[,1],
                       hi=CI[,2],
-                      time=1:58)
+                      Time=1:58)
+## difference in hazards
+CI <- rowQuantiles(y.sim[1:58,]-y.sim[59:116,], probs=c(0.025, 0.975))
+plot.df2 <- data.frame(Diff = yhat[1:58]-yhat[59:116],
+                       lo=CI[,1],
+                       hi=CI[,2],
+                       Time=1:58)
 ggplot(plot.df)+
-  geom_ribbon(aes(x=time, y=Hazard,
+  geom_ribbon(aes(x=Time,
+                  ymin=lo,ymax=hi,
+                  fill=Regime),
+              alpha=.3)+
+  geom_line(aes(x=Time, y=Hazard,
+                color=Regime),
+            linewidth=.3)+
+  theme_bw(14)
+ggplot(plot.df2)+
+  geom_ribbon(aes(x=Time,
                   ymin=lo,ymax=hi),
               alpha=.3)+
-  geom_line(aes(x=time, y=Hazard))
-
+  geom_line(aes(x=Time, y=Diff),
+            linewidth=.3)+
+  ylab("Difference in hazards")+
+  theme_bw(14)
 #### splines####
 spline.mat <- ns(pm.dat$regime_duration_main,df=3)
 ## df=3 puts knots at 1, 2 interior points, and at the end (58)
@@ -150,23 +198,44 @@ Xbar <- apply(X,2, \(x){
   }
 })
 Xbar <- cbind(Xbar, as.matrix(s.df[,2:4]))
+Xbar1 <- Xbar0 <- Xbar
+Xbar1[, "rebelregime"] <- 1
+Xbar0[, "rebelregime"] <- 0
+Xbar <- rbind(Xbar1, Xbar0)
 yhat <- plogis(Xbar %*% l1.splines$coef)
+
 Bmat <- mvrnorm(1000, l1.splines$coef, Vs)
 y.sim <- plogis(Xbar %*% t(Bmat))
 CI <- rowQuantiles(y.sim, probs=c(0.025, 0.975))
 
 plot.df <- data.frame(Hazard = yhat,
+                      Regime=factor(rep(c("Rebellion", "Other"), each=58)),
                       lo=CI[,1],
                       hi=CI[,2],
-                      time=1:58)
+                      Time=1:58)
+## difference in hazards
+CI <- rowQuantiles(y.sim[1:58,]-y.sim[59:116,], probs=c(0.025, 0.975))
+plot.df2 <- data.frame(Diff = yhat[1:58]-yhat[59:116],
+                       lo=CI[,1],
+                       hi=CI[,2],
+                       Time=1:58)
 ggplot(plot.df)+
-  geom_ribbon(aes(x=time, y=Hazard,
+  geom_ribbon(aes(x=Time,
+                  ymin=lo,ymax=hi,
+                  fill=Regime),
+              alpha=.3)+
+  geom_line(aes(x=Time, y=Hazard,
+                color=Regime),
+            linewidth=.3)+
+  theme_bw(14)
+ggplot(plot.df2)+
+  geom_ribbon(aes(x=Time,
                   ymin=lo,ymax=hi),
               alpha=.3)+
-  geom_line(aes(x=time, y=Hazard))
-
-```
-```{r, results='asis'}
+  geom_line(aes(x=Time, y=Diff),
+            linewidth=.3)+
+  ylab("Difference in hazards")+
+  theme_bw(14)
 ## How much do the estimates change?
 
 mod.list <- list(l1.dummies,l1.poly,l1.splines)
