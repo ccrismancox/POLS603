@@ -3,10 +3,11 @@ library(MASS)
 library(lmtest)
 library(sandwich)
 library(matrixStats)
+library(dplyr)
 
 rm(list=ls())
 
-jklp <- data.table(read.dta13("datasets/Kucik_Peritz_JOP2020.dta"))
+jklp <- read.dta13("datasets/Kucik_Peritz_JOP2020.dta")
 
 
 dat <-subset(jklp, comply_b==1|comply_b==0,
