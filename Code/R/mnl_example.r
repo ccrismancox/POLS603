@@ -41,7 +41,7 @@ glm(I(technologyrebellion=="Conventional")~ poscoldwar91+
 glm(I(technologyrebellion=="SNC")~poscoldwar91+
       roughterrain+ethnicwar+
       gdpcapita_fl+ln.milper, data=kb, family=binomial,
-    subset=technologyrebellion!="Irregular")
+    subset=technologyrebellion!="Conventional")
 
 
 ## MN probit
