@@ -1,9 +1,12 @@
 library(readstata13)
+library(matrixStats)
 library(sandwich)
 library(lmtest)
 library(car)
 library(MASS)
 library(mlogit)
+library(ggplot2)
+
 
 rm(list=ls())
 kb  <- read.dta13("datasets/TRdataset_JCR2014_replication_final.dta")
@@ -137,7 +140,7 @@ AMEs
 
 ## plot predicted probs
 summary(kb$ln.milper)
-truehist(kb$ln.milper)
+hist(kb$ln.milper,freq=FALSE,breaks="Scott")
 
 Xbar <- apply(X,2, \(x){
   if(all(x %in% c(0,1))){
