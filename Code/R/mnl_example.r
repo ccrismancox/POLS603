@@ -32,6 +32,7 @@ V1 <- vcovCL(m1, kb[names(m1$fitted),]$countryname)
 ## comparing conventional to irregular
 coeftest(m1, V1)[seq(1,12,by=2),] |> round(4)
 
+
 ## comparing SNC to irregular
 coeftest(m1, V1)[seq(2,12,by=2),] |> round(4)
 
